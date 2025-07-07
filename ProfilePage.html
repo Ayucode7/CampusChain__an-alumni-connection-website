@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusChain - Student Network</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --secondary: #10b981;
+        }
+        
+        .sidebar {
+            transition: all 0.3s;
+        }
+        
+        .sidebar-item:hover {
+            background-color: rgba(79, 70, 229, 0.1);
+        }
+        
+        .sidebar-item.active {
+            background-color: rgba(79, 70, 229, 0.2);
+            border-left: 4px solid var(--primary);
+        }
+        
+        .editable-field {
+            border-bottom: 1px dashed #ccc;
+            padding: 2px 4px;
+            min-width: 100px;
+            display: inline-block;
+        }
+        
+        .editable-field:focus, .editable-textarea:focus {
+            outline: none;
+            border-bottom: 2px solid var(--primary);
+            background-color: rgba(79, 70, 229, 0.05);
+        }
+        
+        .edit-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .editable-container:hover .edit-btn {
+            opacity: 1;
+        }
+        
+        .tag {
+            transition: all 0.2s;
+        }
+        
+        .tag:hover {
+            transform: translateY(-2px);
+        }
+        
+        .profile-container {
+            transition: all 0.3s;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 50;
+                height: 100vh;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .mobile-menu-btn {
+                display: block;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn fixed top-4 left-4 z-40 bg-white p-2 rounded-lg shadow-md md:hidden">
+        <i class="fas fa-bars text-indigo-600 text-xl"></i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div class="sidebar bg-white w-64 min-h-screen shadow-lg fixed md:relative z-30">
+        <div class="p-4 border-b border-gray-200">
+            <h1 class="text-2xl font-bold text-indigo-600 flex items-center">
+                <i class="fas fa-link mr-2"></i> CampusChain
+            </h1>
+        </div>
+        <nav class="mt-6">
+            <div class="px-4">
+                <div class="sidebar-item active flex items-center py-3 px-3 rounded-lg cursor-pointer mb-1">
+                    <i class="fas fa-tachometer-alt text-indigo-600 mr-3"></i>
+                    <span class="text-gray-700 font-medium">Dashboard</span>
+                </div>
+                <div class="sidebar-item flex items-center py-3 px-3 rounded-lg cursor-pointer mb-1">
+                    <i class="fas fa-calendar-alt text-indigo-600 mr-3"></i>
+                    <span class="text-gray-700 font-medium">Events</span>
+                </div>
+                <div class="sidebar-item flex items-center py-3 px-3 rounded-lg cursor-pointer mb-1">
+                    <i class="fas fa-code text-indigo-600 mr-3"></i>
+                    <span class="text-gray-700 font-medium">Hackathons</span>
+                </div>
+                <div class="sidebar-item flex items-center py-3 px-3 rounded-lg cursor-pointer mb-1 profile-tab">
+                    <i class="fas fa-user text-indigo-600 mr-3"></i>
+                    <span class="text-gray-700 font-medium">My Profile</span>
+                </div>
+                <div class="sidebar-item flex items-center py-3 px-3 rounded-lg cursor-pointer mb-1">
+                    <i class="fas fa-cog text-indigo-600 mr-3"></i>
+                    <span class="text-gray-700 font-medium">Settings</span>
+                </div>
+            </div>
+        </nav>
+        <div class="absolute bottom-0 w-full p-4 border-t border-gray-200">
+            <div class="sidebar-item flex items-center py-3 px-3 rounded-lg cursor-pointer text-red-500">
+                <i class="fas fa-sign-out-alt mr-3"></i>
+                <span class="font-medium">Logout</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto">
+        <!-- Profile Page (Initially hidden) -->
+        <div class="profile-page hidden p-6">
+            <!-- Cover Photo Section -->
+            <div class="relative mb-16">
+                <div class="relative h-64 w-full rounded-xl overflow-hidden">
+                    <img id="cover-photo" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/0127f199-ce1b-4bdc-b73d-e757b7467d3c.png" alt="University campus with modern buildings and green spaces in background" 
+                         class="w-full h-full object-cover editable-image">
+                    <div class="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                        <button class="edit-cover-btn bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium">
+                            <i class="fas fa-camera mr-2"></i> Change Cover
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Profile Picture -->
+                <div class="absolute -bottom-12 left-6">
+                    <div class="relative group">
+                        <img id="profile-photo" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/fbb78c92-2813-4507-830d-b8831897cdc6.png" alt="Smiling student profile picture with campus background" 
+                             class="w-24 h-24 rounded-full border-4 border-white object-cover editable-image">
+                        <div class="absolute inset-0 rounded-full bg-black bg-opacity-30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button class="edit-profile-btn bg-white text-indigo-600 p-2 rounded-full">
+                                <i class="fas fa-camera"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Info Section -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="editable-container flex items-center">
+                            <h2 class="text-2xl font-bold text-gray-800 editable-field" id="profile-name">John Doe</h2>
+                            <button class="edit-btn ml-2 text-indigo-600">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="editable-container flex items-center mt-1">
+                            <p class="text-gray-600 editable-field" id="profile-title">Computer Science Student</p>
+                            <button class="edit-btn ml-2 text-indigo-600">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="flex items-center mt-3 text-gray-500">
+                            <div class="editable-container flex items-center mr-4">
+                                <i class="fas fa-university mr-1"></i>
+                                <span class="editable-field" id="college-name">Tech University</span>
+                                <button class="edit-btn ml-2 text-indigo-600">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                            <div class="editable-container flex items-center">
+                                <i class="fas fa-map-marker-alt mr-1"></i>
+                                <span class="editable-field" id="location">New York, USA</span>
+                                <button class="edit-btn ml-2 text-indigo-600">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        <div class="text-center">
+                            <p class="font-bold text-gray-800">1.2K</p>
+                            <p class="text-sm text-gray-500">Followers</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="font-bold text-gray-800">548</p>
+                            <p class="text-sm text-gray-500">Following</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="editable-container mt-4">
+                    <p class="text-gray-700 editable-textarea" id="short-bio">Passionate computer science student specializing in AI and web development. Currently working on blockchain projects and machine learning algorithms. Looking to connect with fellow tech enthusiasts!</p>
+                    <button class="edit-btn mt-2 text-indigo-600 float-right">
+                        <i class="fas fa-edit"></i> Edit Bio
+                    </button>
+                </div>
+                
+                <div class="mt-6 pt-6 border-t border-gray-100">
+                    <h3 class="font-bold text-gray-800 mb-3">Social Links</h3>
+                    <div class="flex flex-wrap gap-3">
+                        <div class="editable-container bg-gray-100 px-3 py-1 rounded-lg flex items-center">
+                            <i class="fab fa-github text-gray-700 mr-2"></i>
+                            <span class="editable-field">github.com/johndoe</span>
+                            <button class="edit-btn ml-2 text-indigo-600">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                        </div>
+                        <div class="editable-container bg-gray-100 px-3 py-1 rounded-lg flex items-center">
+                            <i class="fab fa-linkedin text-blue-600 mr-2"></i>
+                            <span class="editable-field">linkedin.com/in/johndoe</span>
+                            <button class="edit-btn ml-2 text-indigo-600">
+                                <i class="fas fa-edit text-sm"></i>
+                            </button>
+                        </div>
+                        <button class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-lg">
+                            <i class="fas fa-plus mr-1"></i> Add Social
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- About Me Section -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-lg">About Me</h3>
+                    <button class="edit-btn text-indigo-600">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                </div>
+                <div class="editable-container">
+                    <p class="text-gray-700 editable-textarea" id="about-me">I am a final year Computer Science student at Tech University with a passion for building scalable web applications. My areas of interest include Artificial Intelligence, Blockchain Technology, and Cloud Computing. I have worked on multiple projects ranging from chatbots to decentralized applications and have participated in several hackathons winning accolades for innovative solutions.</p>
+                </div>
+            </div>
+            
+            <!-- Interests Section -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-lg">Interests</h3>
+                    <button class="text-indigo-600 add-interest-btn">
+                        <i class="fas fa-plus mr-1"></i> Add Interest
+                    </button>
+                </div>
+                <div class="flex flex-wrap gap-3 interests-container">
+                    <div class="editable-container tag bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full flex items-center">
+                        <span class="editable-field">Artificial Intelligence</span>
+                        <button class="delete-btn ml-2 text-emerald-600 hover:text-emerald-800">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="editable-container tag bg-blue-100 text-blue-800 px-3 py-1 rounded-full flex items-center">
+                        <span class="editable-field">Blockchain</span>
+                        <button class="delete-btn ml-2 text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="editable-container tag bg-purple-100 text-purple-800 px-3 py-1 rounded-full flex items-center">
+                        <span class="editable-field">Web Development</span>
+                        <button class="delete-btn ml-2 text-purple-600 hover:text-purple-800">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="editable-container tag bg-amber-100 text-amber-800 px-3 py-1 rounded-full flex items-center">
+                        <span class="editable-field">Machine Learning</span>
+                        <button class="delete-btn ml-2 text-amber-600 hover:text-amber-800">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Skills Section -->
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-lg">Skills & Expertise</h3>
+                    <button class="text-indigo-600 add-skill-btn">
+                        <i class="fas fa-plus mr-1"></i> Add Skill
+                    </button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 skills-container">
+                    <div class="editable-container p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-medium text-gray-800 editable-field">JavaScript</h4>
+                                <div class="flex items-center mt-2 text-gray-500 text-sm">
+                                    <span class="editable-field">Expert</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="text-indigo-600">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-red-500">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: 90%"></div>
+                        </div>
+                    </div>
+                    <div class="editable-container p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-medium text-gray-800 editable-field">Python</h4>
+                                <div class="flex items-center mt-2 text-gray-500 text-sm">
+                                    <span class="editable-field">Advanced</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="text-indigo-600">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-red-500">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    <div class="editable-container p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-medium text-gray-800 editable-field">Solidity</h4>
+                                <div class="flex items-center mt-2 text-gray-500 text-sm">
+                                    <span class="editable-field">Intermediate</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="text-indigo-600">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-red-500">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: 65%"></div>
+                        </div>
+                    </div>
+                    <div class="editable-container p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-medium text-gray-800 editable-field">React JS</h4>
+                                <div class="flex items-center mt-2 text-gray-500 text-sm">
+                                    <span class="editable-field">Advanced</span>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="text-indigo-600">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-red-500">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                            <div class="bg-indigo-600 h-2 rounded-full" style="width: 85%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Experience Section -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-gray-800 text-lg">Experience</h3>
+                    <button class="text-indigo-600 add-experience-btn">
+                        <i class="fas fa-plus mr-1"></i> Add Experience
+                    </button>
+                </div>
+                <div class="space-y-6 experience-container">
+                    <div class="editable-container border-l-2 border-indigo-500 pl-4 py-1 relative">
+                        <div class="absolute -left-2 top-0 w-4 h-4 bg-indigo-500 rounded-full"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold text-gray-800 editable-field">Frontend Developer Intern</h4>
+                                <div class="editable-container flex items-center text-gray-600 mt-1">
+                                    <span class="editable-field">Tech Solutions Inc.</span>
+                                    <button class="edit-btn ml-2 text-indigo-600">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </button>
+                                </div>
+                                <div class="editable-container flex items-center text-gray-500 text-sm mt-1">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    <span class="editable-field">Jun 2022 - Present</span>
+                                    <button class="edit-btn ml-2 text-indigo-600">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </button>
+                                </div>
+                                <div class="editable-container">
+                                    <p class="text-gray-700 mt-2 editable-textarea">
+                                        - Developed user interfaces with React.js and TypeScript<br>
+                                        - Collaborated with designers to implement responsive layouts<br>
+                                        - Optimized application performance reducing load time by 40%<br>
+                                        - Implemented state management using Redux Toolkit
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="text-indigo-600">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-red-500">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="editable-container border-l-2 border-indigo-500 pl-4 py-1 relative">
+                        <div class="absolute -left-2 top-0 w-4 h-4 bg-indigo-500 rounded-full"></div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold text-gray-800 editable-field">Blockchain Developer</h4>
+                                <div class="editable-container flex items-center text-gray-600 mt-1">
+                                    <span class="editable-field">Crypto Startup</span>
+                                    <button class="edit-btn ml-2 text-indigo-600">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </button>
+                                </div>
+                                <div class="editable-container flex items-center text-gray-500 text-sm mt-1">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    <span class="editable-field">Jan 2021 - May 2022</span>
+                                    <button class="edit-btn ml-2 text-indigo-600">
+                                        <i class="fas fa-edit text-sm"></i>
+                                    </button>
+                                </div>
+                                <div class="editable-container">
+                                    <p class="text-gray-700 mt-2 editable-textarea">
+                                        - Built smart contracts using Solidity for Ethereum blockchain<br>
+                                        - Developed React frontend for DApp integration<br>
+                                        - Implemented Web3.js for blockchain interactions<br>
+                                        - Conducted security audits for smart contracts
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button class="text-indigo-600">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="text-red-500">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard Content (Initially shown) -->
+        <div class="dashboard-content p-6">
+      
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-white p-5 rounded-xl shadow-sm">
+                    <div class="flex justify-between items-start">
+                        
+                       
+                    </div>
+                   
+                </div>
+                
+                <div class="bg-white p-5 rounded-xl shadow-sm">
+                    <div class="flex justify-between items-start">
+                       
+                        
+                    </div>
+                    
+                </div>
+                
+                <div class="bg-white p-5 rounded-xl shadow-sm">
+                    <div class="flex justify-between items-start">
+                            
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-6">
+                
+                <div class="divide-y divide-gray-200">
+                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                        
+                    </div>
+                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                        
+                    </div>
+                    <div class="p-4 hover:bg-gray-50 transition-colors">
+            
+                    </div>
+                </div>
+            
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu-btn').addEventListener('click', function() {
+            document.querySelector('.sidebar').classList.toggle('active');
+        });
+        
+        // Sidebar navigation
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                if(this.classList.contains('profile-tab')) {
+                    document.querySelector('.dashboard-content').classList.add('hidden');
+                    document.querySelector('.profile-page').classList.remove('hidden');
+                } else {
+                    document.querySelector('.dashboard-content').classList.remove('hidden');
+                    document.querySelector('.profile-page').classList.add('hidden');
+                }
+            });
+        });
+        
+        // Make fields editable
+        document.querySelectorAll('.editable-field').forEach(field => {
+            field.addEventListener('click', function() {
+                this.contentEditable = true;
+                this.focus();
+            });
+            
+            field.addEventListener('blur', function() {
+                this.contentEditable = false;
+            });
+        });
+        
+        document.querySelectorAll('.editable-textarea').forEach(field => {
+            field.addEventListener('click', function() {
+                this.contentEditable = true;
+                this.focus();
+            });
+            
+            field.addEventListener('blur', function() {
+                this.contentEditable = false;
+            });
+        });
+        
+        // Edit buttons
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const editable = this.closest('.editable-container').querySelector('.editable-field, .editable-textarea');
+                editable.contentEditable = true;
+                editable.focus();
+            });
+        });
+        
+        // Delete buttons
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.editable-container').remove();
+            });
+        });
+        
+        // Add interest
+        document.querySelector('.add-interest-btn').addEventListener('click', function() {
+            const newInterest = prompt('Enter a new interest:');
+            if(newInterest) {
+                const colors = ['bg-emerald-100 text-emerald-800', 'bg-blue-100 text-blue-800', 'bg-purple-100 text-purple-800', 'bg-amber-100 text-amber-800'];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                const interestEl = document.createElement('div');
+                interestEl.className = `editable-container tag ${randomColor} px-3 py-1 rounded-full flex items-center`;
+                interestEl.innerHTML = `
+                    <span class="editable-field">${newInterest}</span>
+                    <button class="delete-btn ml-2 hover:text-${randomColor.split(' ')[1].split('-')[1]}-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                document.querySelector('.interests-container').appendChild(interestEl);
+                
+                // Add event listener to new delete button
+                interestEl.querySelector('.delete-btn').addEventListener('click', function() {
+                    this.closest('.editable-container').remove();
+                });
+            }
+        });
+        
+        // Add skill
+        document.querySelector('.add-skill-btn').addEventListener('click', function() {
+            const skillName = prompt('Enter skill name:');
+            const skillLevel = prompt('Enter skill level (Expert/Advanced/Intermediate/Beginner):');
+            
+            if(skillName && skillLevel) {
+                const percentage = 
+                    skillLevel.toLowerCase() === 'expert' ? 90 :
+                    skillLevel.toLowerCase() === 'advanced' ? 80 :
+                    skillLevel.toLowerCase() === 'intermediate' ? 65 : 40;
+                
+                const skillEl = document.createElement('div');
+                skillEl.className = 'editable-container p-4 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow';
+                skillEl.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-medium text-gray-800 editable-field">${skillName}</h4>
+                            <div class="flex items-center mt-2 text-gray-500 text-sm">
+                                <span class="editable-field">${skillLevel}</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="text-indigo-600">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="text-red-500">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                        <div class="bg-indigo-600 h-2 rounded-full" style="width: ${percentage}%"></div>
+                    </div>
+                `;
+                
+                document.querySelector('.skills-container').appendChild(skillEl);
+            }
+        });
+        
+        // Add experience
+        document.querySelector('.add-experience-btn').addEventListener('click', function() {
+            const title = prompt('Enter position title:');
+            const company = prompt('Enter company name:');
+            const duration = prompt('Enter duration (e.g., Jun 2022 - Present):');
+            const description = prompt('Enter description (separate points with comma):');
+            
+            if(title && company && duration && description) {
+                const expEl = document.createElement('div');
+                expEl.className = 'editable-container border-l-2 border-indigo-500 pl-4 py-1 relative';
+                expEl.innerHTML = `
+                    <div class="absolute -left-2 top-0 w-4 h-4 bg-indigo-500 rounded-full"></div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-bold text-gray-800 editable-field">${title}</h4>
+                            <div class="editable-container flex items-center text-gray-600 mt-1">
+                                <span class="editable-field">${company}</span>
+                                <button class="edit-btn ml-2 text-indigo-600">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="editable-container flex items-center text-gray-500 text-sm mt-1">
+                                <i class="fas fa-calendar-alt mr-1"></i>
+                                <span class="editable-field">${duration}</span>
+                                <button class="edit-btn ml-2 text-indigo-600">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </button>
+                            </div>
+                            <div class="editable-container">
+                                <p class="text-gray-700 mt-2 editable-textarea">
+                                    ${description.split(',').map(point => `- ${point.trim()}`).join('<br>')}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="text-indigo-600">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="text-red-500">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.querySelector('.experience-container').appendChild(expEl);
+            }
+        });
+        
+        // Image upload simulation
+        document.querySelector('.edit-cover-btn')?.addEventListener('click', function() {
+            const newImage = prompt('Enter new cover photo URL:');
+            if(newImage) {
+                document.getElementById('cover-photo').src = newImage;
+            }
+        });
+        
+        document.querySelector('.edit-profile-btn')?.addEventListener('click', function() {
+            const newImage = prompt('Enter new profile photo URL:');
+            if(newImage) {
+                document.getElementById('profile-photo').src = newImage;
+            }
+        });
+    </script>
+</body>
+</html>
+
